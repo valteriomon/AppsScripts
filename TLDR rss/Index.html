@@ -1,0 +1,77 @@
+<html>
+  <head>
+    <? includeFile_(output, 'JavaScript') ?>
+    <? includeFile_(output, 'Stylesheet') ?>
+  </head>
+  <body>
+    <div id="wrapper">
+      <div id="messages">
+        <div id="message">
+          <span id="message-content"></span>
+          <a id="dismiss" href="#">Dismiss</a>
+        </div>
+      </div>
+      <div id="main">
+        <table id="layout">
+          <tr>
+            <td id="header" colspan="2">
+              <h1>Gmail Label Feeder</h1>
+            </td>
+          </tr>
+          <tr>
+            <td id="left">
+              <h2>Configure</h2>
+              <div id="controls">
+                <form>
+                  <div>
+                    <p>Select a label to create a feed:</p>
+                    <div id="labels-container">
+                    </div>
+                  </div>
+                  <p>
+                    <button id="preview">Preview</button>
+                    <button id="add" disabled>Add</button>
+                    <input id="name" type="text" name="name" disabled/>
+                  </p>
+                  <div id="exclude-container" style="display:none">
+                    <h3>Optional</h3>
+                    <label for="exclude-input">Click on the <span class="select-link">highlighted links</span> 
+                    to remove from published feed (basic link text matching is only applied, dynamic content will be ignored 
+                    and links with the same text will be treadted as the same)</label>
+                    <input id="exclude" type="text" name="exclude"/>
+                  </div>
+                </form>
+              </div>             
+              <h2>Feed Library</h2>
+              <div id="library-container"></div>
+            </td>
+            <td id="right">
+              <h2>Preview</h2>
+              <div id="preview-container">
+                <p>
+                  Gmail Feed is a sample app that allows you to create an RSS feed from your Gmail labels. It was created using Google Apps Script, and demonstrates the usage 
+                  of the HtmlService, ContentService, <s>ScriptDb</s>, and the Gmail Service. The code for this application is based on 
+                  <a href="https://plus.google.com/u/0/103231502413952116096/posts" target="_blank">Eric Koleda's</a> <a href="https://chrome.google.com/webstore/detail/feed%20/eaiadkmgpppkonfodnepmoknpaphnlij">Feed+ Chrome Web Store App</a>
+                </p>
+                <p>This app currently supports creating a feed from specific label. Please note:</p>
+                <ul>
+                  <li><strong>The RSS feeds you create are public, and anyone who has access to the URL could see the feed.</strong></li>
+                </ul>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td id="footer" colspan="2">
+              <div>
+                Created by Martin Hawksey
+                using <a href="http://script.google.com/start" target="_blank">Google Apps Script</a> 
+                based on <a href="https://chrome.google.com/webstore/detail/feed%20/eaiadkmgpppkonfodnepmoknpaphnlij" target="_blank">Eric Koleda's Feed+ App</a>.  
+                More details in the <a href="http://mashe.hawksey.info/2013/05/gmail-label-to-rss-feed">this blog post</a>.
+              </div>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </body>
+</html>

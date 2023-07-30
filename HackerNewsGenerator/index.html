@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <? includeFile_(output, 'style') ?>
+  </head>
+  <body>
+    <div class="main">
+      <h1><?!= comments.title ?></h1>
+      <?!= comments.description ?>
+      <?!= comments.url ?>
+    </div>
+    <hr>
+    <?!= comments.render() ?>
+  </body>
+</html>

@@ -1,0 +1,161 @@
+<script>
+
+document.addEventListener("DOMContentLoaded", function() {
+  document.querySelector('#add').addEventListener('click', () => {
+    var type = "label";
+    var input = $('#label-select').val();
+    var name = $('#name').val();
+    addFeed(type, input, name, exclude);
+    return false;
+  });
+
+    // Bind the preview button click and form submit events.
+    $('#preview, #control-form').bind('click submit', function() {
+      var type = "label";
+      var input = $('#label-select').val();
+      preview(type, input);
+      return false;
+    });
+
+    // Bind the input text change event.
+    $('#label-select, input[name=input]').live('change', function() {
+       setAddDisabled(true);
+    });
+    
+    // Bind the message dismiss link click event.
+    $('#dismiss').bind('click', function() {
+      clearMessages();
+      return false;
+    });
+    
+    // Load the library automatically.
+    loadLibrary();
+    //load the labels
+    loadLabels();
+});
+
+class feed {
+  static library = document.querySelector("#library-container");
+
+  static loadLibrary() {
+    library.text('Loading...');
+    google.script.run.withSuccessHandler((results) => {
+      library.empty();
+      if (results.length > 0) {
+        library.append(renderLibraryTable_(results));
+      } else {
+        library.append('<p>None</p>');
+      }
+    }).withFailureHandler(function(error) {
+      library.text('Failed to load.');
+      showError(error);
+    }).getFeeds();
+  }
+
+  function renderLibraryTable_(feeds) {
+    var table = $('<table></table>');
+    $(feeds).each(function(index, feed) {
+      var div = $('<div class="feed"></div>');
+      var columns = [];
+      columns.push(feed.name);
+      columns.push(_.sprintf('<a target="_blank" href="%s">RSS</a>', feed.url));
+      columns.push(_.sprintf('<button data-feedid="%s">Delete</button>', feed.id));
+      var columnsHtml =  $.map(columns, function(title, index) {
+        if (index == 0) {
+          return _.sprintf('<td class="first">%s</td>', title);
+        } else {
+          return _.sprintf('<td>%s</td>', title);
+        }
+      }).join('');
+      table.append(_.sprintf('<tr>%s</tr>', columnsHtml));
+    });
+    $(table).find('button').bind('click', function() {
+      deleteFeed($(this).data('feedid'));
+    });
+    return table;
+  }
+
+  function addFeed(type, input, name, exclude) {
+    clearMessages();
+    showInfo('Adding feed...');
+    google.script.run.withSuccessHandler(function(url) {
+      showInfo('Feed added.');
+      loadLibrary();
+    }).withFailureHandler(function(error) {
+      showError(error);
+    }).addFeed(type, input, name, exclude);
+  }
+
+  function deleteFeed(feedId) {
+    showInfo('Deleting feed...');
+    google.script.run.withSuccessHandler(function() {
+      showInfo('Feed deleted.');
+      loadLibrary();
+    }).withFailureHandler(function(error) {
+      showError(error);
+    }).deleteFeed(feedId);
+  }
+}
+
+class message {
+  static container = document.querySelector('#message');
+  static content = container.querySelector('#message-content');
+
+  static clearMessages() {
+    this.container.style.display = 'none';
+  }
+
+  static showInfo(message) {
+    container.classList.add('info');
+    container.classList.remove('error');
+    showMessage_(message);
+  }
+
+  static showError(message) {
+    container.classList.add('error');
+    container.classList.remove('info');
+    showMessage_(message);
+  }
+
+  static showMessage_(message) {
+    this.content.innerText = message;
+    this.container.style.display = 'block';
+  }
+
+}
+
+/**
+ * Loads a preview of the feed using the current type and input.
+ * @param {string} type The type of feed.
+ * @param {string} input The feed input.
+ */
+  // function preview(type, input) {
+  //   clearMessages();
+  //   var preview = $('#preview-container');
+  //   preview.html('Loading...');
+  //   google.script.run.withSuccessHandler(function(result) {
+  //     preview.empty();
+  //     preview.append('<h3>' + result.title + '</h3>');
+  //     $('#name').val(result.title);
+  //     if (result.items.length > 0) {
+  //       $(result.items).each(function(index, item) {
+  //         var div = $('<div class="item"></div>');
+  //         div.html(item);
+  //         preview.append(div);
+  //         setAddDisabled(false);
+  //         $('#exclude-container').slideDown();
+  //       });
+  //       $('.item a').addClass("select-link").attr("title", "Click to remove this link from generated feed");
+  //       $('.item a').bind('click', function(dhis) {
+  //         dhis.preventDefault();
+  //         $('#exclude').val($('#exclude').val() + $(this).text() + '||');
+  //       });
+  //     } else {
+  //       preview.append('No matching posts were found.');
+  //     }
+  //   }).withFailureHandler(function(error) {
+  //     preview.text('Failed to load preview.');
+  //     showError(error);
+  //   }).getPreview(type, input, MAX_PREVIEW_ITEMS);
+  // }
+</script>

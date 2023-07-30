@@ -1,0 +1,10 @@
+<table>
+  <tr>
+      <?!= item.getFirstMessageSubject() ?>
+      <div style="margin-bottom:1em;">
+        <? var html =  item.getMessages()[0].getBody();
+           html = html.replace(/\r?\n|\r/g, ''); ?>
+        <?!= html ?>
+      </div>
+  </tr>
+</table>

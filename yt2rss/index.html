@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <? includeFile_(output, 'script') ?>
+    <? includeFile_(output, 'stylesheet') ?>
+  </head>
+  <body>
+    <div id="wrapper">
+      <div id="messages">
+        <div id="message">
+          <span id="message-content"></span>
+          <a id="dismiss" href="#">Dismiss</a>
+        </div>
+      </div>
+      <div id="main">
+        <h1>YouTube playlists RSS</h1>
+        <h2>Add playlist</h2>
+        <div id="form">
+          <form>
+            <p>
+              <button id="add" disabled>Add</button>
+              <input id="url" type="text" name="url"/>
+            </p>
+          </form>
+        </div>             
+        <h2>Feed Library</h2>
+        <div id="library-container"></div>
+      </div>
+    </div>
+  </body>
+</html>

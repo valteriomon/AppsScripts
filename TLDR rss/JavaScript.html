@@ -1,0 +1,241 @@
+<!-- Load the jQuery library client-side. -->
+<script src="//code.jquery.com/jquery-1.7.2.min.js"></script>
+
+<!-- Client-side JavaScript code. -->
+<script>
+  // The maximum number of items to include in the feed preview.
+  var MAX_PREVIEW_ITEMS = 10;
+  // When the page loads.
+  $(document).ready(function() {
+    // Bind the preview button click and form submit events.
+    $('#preview, #control-form').bind('click submit', function() {
+      var type = "label";
+      var input = $('#label-select').val();
+      preview(type, input);
+      return false;
+    });
+
+    // Bind the input text change event.
+    $('#label-select, input[name=input]').live('change', function() {
+       setAddDisabled(true);
+    });
+    
+    // Bind the add button click event.
+    $('#add').bind('click', function() {
+      var type = "label";
+      var input = $('#label-select').val();
+      var name = $('#name').val();
+      var exclude = $('#exclude').val();
+      
+      addFeed(type, input, name, exclude);
+      return false;
+    });
+    
+    // Bind the message dismiss link click event.
+    $('#dismiss').bind('click', function() {
+      clearMessages();
+      return false;
+    });
+    
+    // Load the library automatically.
+    loadLibrary();
+    //load the labels
+    loadLabels();
+  });
+  
+ 
+  /**
+   * Loads a preview of the feed using the current type and input.
+   * @param {string} type The type of feed.
+   * @param {string} input The feed input.
+   */
+  function preview(type, input) {
+    clearMessages();
+    var preview = $('#preview-container');
+    preview.html('Loading...');
+    google.script.run.withSuccessHandler(function(result) {
+      preview.empty();
+      preview.append('<h3>' + result.title + '</h3>');
+      $('#name').val(result.title);
+      if (result.items.length > 0) {
+        $(result.items).each(function(index, item) {
+          var div = $('<div class="item"></div>');
+          div.html(item);
+          preview.append(div);
+          setAddDisabled(false);
+          $('#exclude-container').slideDown();
+        });
+        $('.item a').addClass("select-link").attr("title", "Click to remove this link from generated feed");
+        $('.item a').bind('click', function(dhis) {
+          dhis.preventDefault();
+          $('#exclude').val($('#exclude').val() + $(this).text() + '||');
+        });
+      } else {
+        preview.append('No matching posts were found.');
+      }
+    }).withFailureHandler(function(error) {
+      preview.text('Failed to load preview.');
+      showError(error);
+    }).getPreview(type, input, MAX_PREVIEW_ITEMS);
+  }
+
+  
+  /**
+   * Adds a feed to the user's library.
+   * @param {string} type The type of feed.
+   * @param {string} input The feed input.
+   * @param {string} name The name of the feed.
+   * @param {string} exclude The link text to exclude from the feed.
+   */
+  function addFeed(type, input, name, exclude) {
+    clearMessages();
+    showInfo('Adding feed...');
+    google.script.run.withSuccessHandler(function(url) {
+      showInfo('Feed added.');
+      loadLibrary();
+    }).withFailureHandler(function(error) {
+      showError(error);
+    }).addFeed(type, input, name, exclude);
+  }
+  
+  /**
+   * Deletes a feed from the user's library.
+   * @param {string} feedId The ID of the feed.
+   */
+  function deleteFeed(feedId) {
+    showInfo('Deleting feed...');
+    google.script.run.withSuccessHandler(function() {
+      showInfo('Feed deleted.');
+      loadLibrary();
+    }).withFailureHandler(function(error) {
+      showError(error);
+    }).deleteFeed(feedId);
+  }
+  
+  /**
+   * Load the user's library of feeds.
+   */
+  function loadLibrary() {
+    var library = $('#library-container');
+    library.text('Loading...');
+    google.script.run.withSuccessHandler(function(results) {
+      library.empty();
+      if (results.length > 0) {
+        library.append(renderLibraryTable_(results));
+      } else {
+        library.append('<p>None</p>');
+      }
+    }).withFailureHandler(function(error) {
+      library.text('Failed to load.');
+      showError(error);
+    }).getFeeds();
+  }
+  
+    /**
+   * Load the user's Gmail labels.
+   */
+  function loadLabels() {
+    var library = $('#labels-container');
+    library.text('Loading...');
+    google.script.run.withSuccessHandler(function(results) {
+      library.empty();
+      if (results.length > 0) {
+        library.append(renderLabelSelect_(results));
+      } else {
+        library.append('<p>None</p>');
+      }
+    }).withFailureHandler(function(error) {
+      library.text('Failed to load.');
+      showError(error);
+    }).getLabels();
+    
+  }
+  
+  /**
+   * Renders the HTML of the library table.
+   * @param {Array.<Object>} feeds The feeds to render.
+   * @returns {HtmlTableElement} The renderd table.
+   * @private
+   */
+  function renderLibraryTable_(feeds) {
+    var table = $('<table></table>');
+    $(feeds).each(function(index, feed) {
+      var div = $('<div class="feed"></div>');
+      var columns = [];
+      columns.push(feed.name);
+      columns.push(`<a target="_blank" href="${feed.url}">RSS</a>`);
+      columns.push(`<button data-feedid="${feed.id}">Delete</button>`);
+      var columnsHtml =  $.map(columns, function(title, index) {
+        if (index == 0) {
+          return `<td class="first">${title}</td>`;
+        } else {
+          return `<td>${title}</td>`;
+        }
+      }).join('');
+      table.append(`<tr>${columnsHtml}</tr>`);
+    });
+    $(table).find('button').bind('click', function() {
+      deleteFeed($(this).data('feedid'));
+    });
+    return table;
+  }
+  
+  /**
+   * Renders the HTML of the label select.
+   * @param {Array} labels The labels to render.
+   * @returns {HtmlTableElement} The renderd select list.
+   * @private
+   */
+  function renderLabelSelect_(labels) {
+    var select = $('<select id="label-select"></select>');
+    $(labels).each(function(index, label) {
+      select.append(`<option>${label}</option>`);
+    });
+    return select;
+  }
+
+  
+  /**
+   * Show an informational message.
+   * @param {string} message The message to display.
+   */
+  function showInfo(message) {
+    $('#message').addClass('info').removeClass('error');
+    showMessage_(message);
+  }
+  
+  /**
+   * Show an error message.
+   * @param {string} message The message to display.
+   */
+  function showError(message) {
+    $('#message').addClass('error').removeClass('info');
+    showMessage_(message);
+  }
+  
+  /**
+   * Show a message.
+   * @param {string} message The message to display.
+   * @private
+   */
+  function showMessage_(message) {
+    $('#message-content').text(message);
+    $('#message').show();
+  }
+  
+  /**
+   * Clears any messages.
+   */
+  function clearMessages() {
+    $('#message').hide();
+  }
+  
+  function setAddDisabled(disabled) {
+    if (disabled){
+      $('#exclude-container').slideUp();
+      $('#exclude').val("");
+    }
+    $('#add').attr('disabled', disabled);
+    $('#name').attr('disabled', disabled);
+  }
+</script>
